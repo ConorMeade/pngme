@@ -70,11 +70,12 @@ impl FromStr for ChunkType {
         if s.len() <= 0 {
             //Err(FromStrError::Empty)
             Err(PngError::Custom("Empty String".to_owned()))
-        }
-        else if s.len() != 4 {
+        } else if s.len() != 4 {
             Err(PngError::Custom("Not proper CHUNK_SIZE length".to_owned()))
-        } else if !s.chars().all(|c| c.is_ascii_alphanumeric()) {
-            Err(PngError::Custom("Not all chars are ASCII readable".to_owned()))
+        } else if !s.chars().all(|c| c.is_ascii_alphabetic()) {
+            Err(PngError::Custom(
+                "Invalid ascii character, must be alphabetic".to_owned(),
+            ))
         } else {
             let mut chunk_as_bytes = [0; 4];
             chunk_as_bytes.clone_from_slice(s.as_bytes());
@@ -88,22 +89,13 @@ impl FromStr for ChunkType {
 impl Display for ChunkType {
     /// display the [`ChunkType`] using its string representation of bytes
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", str::from_utf8(&self.bytes()).map_err(PngError::from)?)
+        write!(
+            f, 
+            "{}", 
+            str::from_utf8(&self.bytes()).map_err(PngError::from)?
+        )
     }
 }
-
-// impl Display for ChunkType {
-//     /// display the [`ChunkType`] using its string representation of bytes
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//         write!(
-//             f,
-//             "ChunkType in bytes looks like: {}",
-//             //str::from_utf8(&self.bytes())
-//             str::from_utf8(&self.bytes()).map_err(|e| std::str::Utf8Error(e))
-//             //str::from_utf8(&self.bytes()).map_err(|e| Error::from(e))?
-//         )
-//     }
-// }
 
 #[cfg(test)]
 mod tests {
@@ -122,6 +114,7 @@ mod tests {
     #[test]
     pub fn test_chunk_type_from_str() {
         let expected = ChunkType::try_from([82, 117, 83, 116]).unwrap();
+        println!("{}", expected);
         let actual = ChunkType::from_str("RuSt").unwrap();
         assert_eq!(expected, actual);
     }
@@ -147,6 +140,7 @@ mod tests {
     #[test]
     pub fn test_chunk_type_is_not_public() {
         let chunk = ChunkType::from_str("RuSt").unwrap();
+        println!("{}", chunk);
         assert!(!chunk.is_public());
     }
 
@@ -183,6 +177,7 @@ mod tests {
     #[test]
     pub fn test_invalid_chunk_is_valid() {
         let chunk = ChunkType::from_str("Rust").unwrap();
+        println!("{}", chunk);
         assert!(!chunk.is_valid());
 
         let chunk = ChunkType::from_str("Ru1t");
