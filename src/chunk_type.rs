@@ -13,6 +13,7 @@ pub struct ChunkType(
     [u8; 4],
 );
 
+#[allow(dead_code)]
 impl ChunkType {
     /// Bytes representation for ChunkType
     pub fn bytes(&self) -> [u8; 4] {
@@ -72,12 +73,12 @@ impl FromStr for ChunkType {
             Err(PngError::Custom("Empty String".to_owned()))
         } else if s.len() != 4 {
             Err(PngError::Custom("Not proper CHUNK_SIZE length".to_owned()))
-        } else if !s.chars().all(|c| c.is_ascii_alphabetic()) {
+        } else if !s.chars().all(|c: char| c.is_ascii_alphabetic()) {
             Err(PngError::Custom(
                 "Invalid ascii character, must be alphabetic".to_owned(),
             ))
         } else {
-            let mut chunk_as_bytes = [0; 4];
+            let mut chunk_as_bytes: [u8; 4] = [0; 4];
             chunk_as_bytes.clone_from_slice(s.as_bytes());
             Ok(ChunkType(chunk_as_bytes))
         }
@@ -105,23 +106,23 @@ mod tests {
 
     #[test]
     pub fn test_chunk_type_from_bytes() {
-        let expected = [82, 117, 83, 116];
-        let actual = ChunkType::try_from([82, 117, 83, 116]).unwrap();
+        let expected: [u8; 4] = [82, 117, 83, 116];
+        let actual: ChunkType = ChunkType::try_from([82, 117, 83, 116]).unwrap();
 
         assert_eq!(expected, actual.bytes());
     }
 
     #[test]
     pub fn test_chunk_type_from_str() {
-        let expected = ChunkType::try_from([82, 117, 83, 116]).unwrap();
+        let expected: ChunkType = ChunkType::try_from([82, 117, 83, 116]).unwrap();
         println!("{}", expected);
-        let actual = ChunkType::from_str("RuSt").unwrap();
+        let actual: ChunkType = ChunkType::from_str("RuSt").unwrap();
         assert_eq!(expected, actual);
     }
 
     #[test]
     pub fn test_chunk_type_is_critical() {
-        let chunk = ChunkType::from_str("RuSt").unwrap();
+        let chunk: ChunkType = ChunkType::from_str("RuSt").unwrap();
         assert!(chunk.is_critical());
     }
 

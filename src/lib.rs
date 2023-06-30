@@ -1,3 +1,4 @@
+
 mod error;
 
 pub use error::{PngError, Result};
