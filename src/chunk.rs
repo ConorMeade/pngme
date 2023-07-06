@@ -1,4 +1,5 @@
 use std::fmt;
+use std::str;
 use std::convert::TryFrom;
 use std::io::{BufReader, Read};
 
@@ -8,23 +9,39 @@ use pngme::{PngError, Result};
 use crc::CRC_32_ISO_HDLC;
 use crc;
 
-
+#[derive(Debug, PartialEq, Eq)]
 struct Chunk {
-    length: u8,
-
+    length: u32,
+    chunk_type: ChunkType,
+    chunk_data: Vec<u8>,
+    crc: u32,
 }
 
 impl Chunk {
     pub fn new(chunk_type: ChunkType, data: Vec<u8>) -> Chunk {
-        todo!()
+        let data_length: u32 = 0;
+        for d in &data {
+            let d_str = str::from_utf8(d).unwrap();
+            data_length += d_str.len();
+        }
+
+        let crc = self.crc(data);
+        let new_chunk = Chunk {
+            length: data_length,
+            chunk_type: chunk_type,
+            chunk_data: data,
+            crc: 99
+        };
+
+        new_chunk
     }
 
     pub fn length(&self) -> u32 {
-        todo!()
+        self.length
     }
 
     pub fn chunk_type(&self) -> &ChunkType {
-        todo!()
+        &self.chunk_type
     }
 
     fn data(&self) -> &[u8] {
@@ -32,7 +49,9 @@ impl Chunk {
     }
 
     fn crc(&self) -> u32 {
-        todo!()
+        let crc_num: u32 = crc::Crc::checksum(&self, &self.chunk_data);
+
+        crc_num
     }
 
     fn data_as_string(&self) -> Result<String> {
