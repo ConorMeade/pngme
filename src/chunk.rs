@@ -6,10 +6,10 @@ use std::io::{BufReader, Read};
 use crate::chunk_type::ChunkType;
 use pngme::{PngError, Result};
 
-use crc::CRC_32_ISO_HDLC;
+use crc::{Crc, CRC_32_ISO_HDLC};
 use crc;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Clone)]
 struct Chunk {
     length: u32,
     chunk_type: ChunkType,
@@ -19,25 +19,25 @@ struct Chunk {
 
 impl Chunk {
     pub fn new(chunk_type: ChunkType, data: Vec<u8>) -> Chunk {
-        let data_length: u32 = 0;
-        for d in &data {
-            let d_str = str::from_utf8(d).unwrap();
-            data_length += d_str.len();
-        }
+        let data_str: String = String::from_utf8(data.clone()).unwrap();
 
-        let crc = self.crc(data);
-        let new_chunk = Chunk {
-            length: data_length,
+        let mut message: Vec<u8> = chunk_type.bytes().to_vec();
+        message.extend_from_slice(&data);
+        pub const CRC_PNG: Crc<u32> = Crc::<u32>::new(&CRC_32_ISO_HDLC);
+        let chunk_crc: u32 = CRC_PNG.checksum(&message);
+
+        let new_chunk: Chunk = Chunk {
+            length: data_str.len() as u32,
             chunk_type: chunk_type,
             chunk_data: data,
-            crc: 99
+            crc: chunk_crc
         };
 
         new_chunk
     }
 
     pub fn length(&self) -> u32 {
-        self.length
+        self.length as u32
     }
 
     pub fn chunk_type(&self) -> &ChunkType {
@@ -49,9 +49,14 @@ impl Chunk {
     }
 
     fn crc(&self) -> u32 {
-        let crc_num: u32 = crc::Crc::checksum(&self, &self.chunk_data);
 
-        crc_num
+        let mut message: Vec<u8> = self.chunk_type.bytes().to_vec();
+        message.extend_from_slice(&self.chunk_data);
+        pub const CRC_PNG: Crc<u32> = Crc::<u32>::new(&CRC_32_ISO_HDLC);
+        let chunk_crc: u32 = CRC_PNG.checksum(&message);
+        
+
+        chunk_crc
     }
 
     fn data_as_string(&self) -> Result<String> {

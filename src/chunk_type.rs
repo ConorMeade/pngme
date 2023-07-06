@@ -7,7 +7,7 @@ use pngme::{PngError, Result, CHUNK_SIZE};
 
 /// A 4-byte chunk type code for PNG file
 /// Each chunk has a type that can be represented as a 4 character string
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ChunkType(
     /// bytes encoding of chunk type
     [u8; 4],
@@ -84,8 +84,8 @@ impl FromStr for ChunkType {
         }
         
     }
-
 }
+
 
 impl Display for ChunkType {
     /// display the [`ChunkType`] using its string representation of bytes
